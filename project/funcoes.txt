@@ -1,35 +1,46 @@
-findall([Cidade, HorarioI, NomeTransp, Valor] ,(
-      viagem(X,Cidade,IdViagem, Valor),
-       horario(IdViagem,IdOnibus,HorarioI,_),
-       onibus(IdOnibus, NomeTransp)),
-        Viagens). 
+%Determina todas as rotas possiveis de A até B saindo depois das H horas
+todasRotas(A, B, H, R, PT, HS, HC) :- viagem(A, B, I, PT), horario(I, _, HS, HC), H =< HS, R = [A, I, B].
+todasRotas(A, B, H, R, PT, HS, HC) :- viagem(A, C, I, P1), horario(I, _, HS, HC1), H =< HS, todasRotas(C, B, HC1, R2, P2, _, HC), PT is P1 + P2, R = [A, I | R2].
 
+%Determina o menor tempo de chegada em B saindo de A depois das H horas
+menorTempo(A, B, H, C) :- findall(HC, todasRotas(A, B, H, _, _, _, HC), V), sort(V, [C|_]).
 
+%Determina o menor preço para uma viagem de A até B saindo depois das H horas.
+menorPreco(A, B, H, P) :- findall(PT, todasRotas(A, B, H, _, PT, _, _), V), sort(V, [P|_]).
 
-
-% printa os valores, mais não encerra !
-distancia(City1, City2, Distance) :- 
-    rota(City1, City2, Distance,_).
-distancia(City1, City2, Distance) :- 
-    rota(City1, Z, Dist1,_), 
-    distancia(Z, City2, Dist2), Distance is Dist1 + Dist2.
-
-
-%Tentei melhorar mas.....
-%o read City está recebendo o valor na chamada da função viagem em vez de verificar se é igual
-suaCidade:- nl,
-    write("Digite o nome da sua cidade:"), nl,
-    read(City),
+suaCidade(City):- nl,
   	forall(
         (
-        	viagem(City,Cidade,IdViagem,_),
-       		horario(IdViagem,IdOnibus,HorarioI,_),
-       		onibus(IdOnibus, NomeTransp)
+        	viagem(City,Cidade,IdViagem,Preco),
+       		horario(IdViagem,IdOnibus,HorarioS,HorarioC),
+       		onibus(IdOnibus, NomeTransp),
+           	HS is HorarioS // 60,
+        	MS is mod(HorarioS ,60),
+           	HC is HorarioC // 60,
+        	MC is mod(HorarioC ,60)
         )
-        ,  format('~w~w~n~w~w hrs~n~w~w~n__________________ ~w ~n',
+        ,  format('~w~w~n~w~w:~w hrs~n~w~w:~w hrs~n~w~w~n~w~w~n__________________ ~n',
                   ['Destino: ', Cidade,
-                    'Saida: ', HorarioI,
-                    'Empresa: ', NomeTransp, City])).
-               
-%Printa qual o menor preço para ir de A até B apartir das H horas 
-melhorPreco(A, B, P, H) :- findall(Z, (findall(PR, ((viagem(A, C, I, P1), horario(I, _, HS, HC), H =< HS, melhorpreco(C, B, P2, HC), PR is P1 + P2);(viagem(A, B, I, PR), horario(I, _, S, _), H =< S)), V), sort(V, [Z|_])), [P|_]).
+                   'Saida: ', HS,MS, 
+                   'Chegada: ', HC,MC,
+                   'Empresa: ', NomeTransp,
+                   'Preço: R$ ', Preco])).
+
+viagensEmpresa(Empresa):- nl,
+  	forall(
+        (
+        	viagem(De,Para,IdViagem,Preco),
+       		horario(IdViagem,IdOnibus,HorarioS,HorarioC),
+       		onibus(IdOnibus, Empresa),
+           	HS is HorarioS // 60,
+        	MS is mod(HorarioS ,60),
+           	HC is HorarioC // 60,
+        	MC is mod(HorarioC ,60)
+        )
+        ,  (format('~w~w~n~w~w~n~w~w~n~w~w:~w hrs~n~w~w:~w hrs~n~w~w~n__________________ ~n',
+                  ['Onibus: ', IdOnibus,
+                   'De: ', De,
+                   'Para: ', Para,
+                   'Saida: ', HS,MS, 
+                   'Chegada: ', HC,MC,
+                   'Preço: R$ ', Preco]))).
