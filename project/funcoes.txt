@@ -2,11 +2,46 @@
 todasRotas(A, B, H, R, PT, HS, HC) :- viagem(A, B, I, PT), horario(I, _, HS, HC), H =< HS, R = [A, I, B].
 todasRotas(A, B, H, R, PT, HS, HC) :- viagem(A, C, I, P1), horario(I, _, HS, HC1), H =< HS, todasRotas(C, B, HC1, R2, P2, _, HC), PT is P1 + P2, R = [A, I | R2].
 
+imprimeRota(HorarioS, HorarioC, Preco, Rota) :- 
+    HS is HorarioS // 60,
+   	MS is mod(HorarioS ,60),
+    HC is HorarioC // 60,
+    MC is mod(HorarioC ,60),
+	format('____________________________________ ~n~w~w:~w hrs~n~w~w:~w hrs~n~w~w~nRota: ',[
+		'Saida: ', HS,MS, 
+        'Chegada: ', HC,MC,
+        'Preço: R$ ', Preco
+    ]),
+    writeln(Rota).
+
+imprimeRotas(A, B, H, M) :-
+    T is H * 60 + M,
+    forall(
+    	todasRotas(A, B, T, R, PT, HorarioS, HorarioC),
+    	imprimeRota(HorarioS, HorarioC, PT, R)
+    ).
+
 %Determina o menor tempo de chegada em B saindo de A depois das H horas
 menorTempo(A, B, H, C) :- findall(HC, todasRotas(A, B, H, _, _, _, HC), V), sort(V, [C|_]).
 
+imprimeMenorTempo(A, B, H, M) :-
+    T is H * 60 + M,
+    menorTempo(A, B, T, C),
+    forall(
+    	todasRotas(A, B, T, R, PT, HorarioS, C),
+    	imprimeRota(HorarioS, C, PT, R)
+    ).
+
 %Determina o menor preço para uma viagem de A até B saindo depois das H horas.
 menorPreco(A, B, H, P) :- findall(PT, todasRotas(A, B, H, _, PT, _, _), V), sort(V, [P|_]).
+
+imprimeMenorPreco(A, B, H, M) :-
+    T is H * 60 + M,
+    menorPreco(A, B, T, P),
+    forall(
+    	todasRotas(A, B, T, R, P, HorarioS, HorarioC),
+    	imprimeRota(HorarioS, HorarioC, P, R)
+    ).
 
 suaCidade(City):- nl,
   	forall(
