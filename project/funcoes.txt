@@ -1,7 +1,7 @@
 contem([X | _], X).
 contem([_ | V], X) :- contem(V, X).
 
-trajeto(A, B, U, T, D) :- rota(A, B, D, R), T = [A, R, D, B].
+trajeto(A, B, _, T, D) :- rota(A, B, D, R), T = [A, R, D, B].
 trajeto(A, B, U, T, D) :- rota(A, C, D1, R), C \= B, not(contem(U, C)), trajeto(C, B, [C | U], T1, D2), T = [A, R, D1 | T1], D is D1 + D2.
 
 imprimeTrajeto(T, D) :-
